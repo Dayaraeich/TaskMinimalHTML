@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gerenciamento de Tarefas</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="script.js"></script>
+</head>
+<body>
+  
+  <h1>Gerenciamento de Tarefas</h1>
+
+    <div id="task-form">
+      <input type="text" id="task-input" placeholder="Digite uma tarefa">
+      <button id="add-task-btn">Adicionar</button>
+    </div>
+  
+    <ul id="task-list"></ul>
+    <script>
+      let tasks = [];
+  
+      function addTask() {
+        const taskInput = document.getElementById('task-input');
+        const taskText = taskInput.value.trim();
+  
+        if (taskText !== '') {
+          const task = {
+            id: new Date().getTime(),
+            text: taskText
+          };
+  
+          tasks.push(task);
+          saveTasks();
+          displayTasks();
+          taskInput.value = '';
+        }
+      }
+  
+      function deleteTask(id) {
+        tasks = tasks.filter(task => task.id !== id);
+        saveTasks();
+        displayTasks();
+      }
+  
+      function editTask(id) {
+        const taskIndex = tasks.findIndex(task => task.id === id);
+        if (taskIndex !== -1) {
+          const taskText = prompt('Digite a nova descrição da tarefa:', tasks[taskIndex].text);
+          if (taskText !== null) {
+            tasks[taskIndex].text = taskText;
+            saveTasks();
+            displayTasks();
+          }
+        }
+      }
+  
+      function displayTasks() {
+        const taskList = document.getElementById('task-list');
+        taskList.innerHTML = '';
+  
+        tasks.forEach(task => {
+          const taskItem = document.createElement('li');
+          taskItem.className = 'task-item';
+          taskItem.innerHTML = `
+            <span>${task.text}</span>
+            <button onclick="deleteTask(${task.id})">Excluir</button>
+          `;
+          taskItem.addEventListener('click', () => editTask(task.id));
+          taskList.appendChild(taskItem);
+        });
+      }
+  
+      function saveTasks() {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+      }
+  
+      function loadTasks() {
+        const storedTasks = localStorage.getItem('tasks');
+  
+        if (storedTasks) {
+          tasks = JSON.parse(storedTasks);
+        }
+      }
+  
+      loadTasks();
+      displayTasks();
+  
+      const addTaskBtn = document.getElementById('add-task-btn');
+      addTaskBtn.addEventListener('click', addTask);
+  
+      document.addEventListener('keydown', event => {
+        const { key } = event;
+        if (key === 'Delete') {
+          const selectedTask = document.querySelector('.task-item.selected');
+          if (selectedTask) {
+            const taskId = parseInt(selectedTask.dataset.taskId);
+            deleteTask(taskId);
+          }
+        }
+      });
+
+      const taskInput = document.getElementById('task-input');
+      taskInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          addTask();
+        }
+      });
+    </script>
+  </body>
+</html>
